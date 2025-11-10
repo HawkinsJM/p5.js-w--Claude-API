@@ -1,0 +1,11 @@
+# API Keys and sensitive configuration
+config.js
+
+# Node modules
+node_modules/
+
+# Package lock file
+package-lock.json
+
+# OS files
+.DS_Store
