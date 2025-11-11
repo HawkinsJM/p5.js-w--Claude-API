@@ -1,28 +1,28 @@
-# Chat with Claude - p5.js AI Application
+# Chat with Llama Vision - p5.js AI Application
 
-A simple, educational chat interface built with p5.js that connects to Anthropic's Claude AI. Perfect for teaching students about API integration, asynchronous programming, and creative coding with AI.
+A simple, educational chat interface built with p5.js that connects to NVIDIA's Llama Vision AI. Features automatic image analysis of a tree frog photo using the Llama 4 Maverick vision model. Perfect for teaching students about API integration, vision AI, asynchronous programming, and creative coding with AI.
 
 ![Chat Interface](https://img.shields.io/badge/p5.js-ED225D?style=flat&logo=p5.js&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white)
-![Claude AI](https://img.shields.io/badge/Claude-191919?style=flat&logo=anthropic&logoColor=white)
+![NVIDIA](https://img.shields.io/badge/NVIDIA-76B900?style=flat&logo=nvidia&logoColor=white)
 
 ## 📋 Prerequisites
 
 Before you begin, make sure you have:
 
 - **Node.js** installed (v14 or higher) - [Download here](https://nodejs.org/)
-- An **Anthropic API key** - [Get one here](https://console.anthropic.com/)
+- An **NVIDIA API key** - [Get one here](https://build.nvidia.com/)
 - A text editor (VS Code recommended)
 - A web browser (Chrome, Firefox, Safari, etc.)
 
 ## 🚀 Quick Start
 
-### 1. Get an Anthropic API Key
+### 1. Get an NVIDIA API Key
 
-1. Go to [https://console.anthropic.com/](https://console.anthropic.com/)
-2. Sign up or log in
-3. Navigate to **API Keys** section
-4. Click **Create Key** and copy your new API key
+1. Go to [https://build.nvidia.com/](https://build.nvidia.com/)
+2. Sign up or log in with your NVIDIA account
+3. Navigate to any model page (e.g., Llama models)
+4. Click **Get API Key** and copy your new API key (starts with `nvapi-`)
 
 ### 2. Set Up the Project
 
@@ -41,11 +41,11 @@ npm install
 **Configure your API key:**
 
 1. Open the file `config.js`
-2. Replace `'your-api-key-here'` with your actual API key:
+2. Replace `'your-nvidia-api-key-here'` with your actual API key:
 
 ```javascript
 const CONFIG = {
-  ANTHROPIC_API_KEY: 'sk-ant-api03-your-actual-key-here'
+  NVIDIA_API_KEY: 'nvapi-your-actual-key-here'
 };
 ```
 
@@ -74,20 +74,21 @@ API Key loaded: Yes
 http://localhost:3000
 ```
 
-That's it! You should see the chat interface. Type a message and press Enter or click Send.
+That's it! You should see the chat interface and automatically get an AI analysis of the frog image. You can then continue chatting with Llama Vision about the image or ask other questions.
 
 ## 📁 Project Structure
 
 ```
 Claude API 1/
-├── sketch.js          # Main p5.js code (chat interface)
-├── server.js          # Node.js proxy server (handles API calls)
-├── config.js          # Your API key (git-ignored)
-├── config.example.js  # Example config file (safe to share)
-├── index.html         # HTML page that loads everything
-├── package.json       # Node.js dependencies
-├── .gitignore        # Prevents sensitive files from being committed
-└── README.md         # This file!
+├── sketch.js                      # Main p5.js code (chat interface with vision)
+├── server.js                      # Node.js proxy server (handles API calls)
+├── config.js                      # Your API key (git-ignored)
+├── config.example.js              # Example config file (safe to share)
+├── index.html                     # HTML page that loads everything
+├── package.json                   # Node.js dependencies
+├── Picture1.b7f92cc.width-1600... # Frog image for vision analysis
+├── .gitignore                     # Prevents sensitive files from being committed
+└── README.md                      # This file!
 ```
 
 ## 🎓 How It Works
@@ -95,17 +96,30 @@ Claude API 1/
 ### The Architecture
 
 ```
-Browser (p5.js)  →  Local Server (Node.js)  →  Anthropic API (Claude)
+Browser (p5.js)  →  Local Server (Node.js)  →  NVIDIA API (Llama Vision)
     ↓                      ↓                         ↓
-  sketch.js            server.js                 Claude AI
+  sketch.js            server.js              Llama 4 Maverick
 ```
+
+### Automatic Frog Image Analysis
+
+On startup, the application automatically:
+1. **Loads the frog image** from the server as base64
+2. **Sends it to Llama Vision** with the prompt to analyze the image
+3. **Receives detailed analysis** including:
+   - Species identification (*Hyla cinerea* - American green treefrog)
+   - Color and physical feature description
+   - Photography quality assessment
+4. **Displays the analysis** in the chat interface
+
+### Chat Flow
 
 1. **User types a message** in the p5.js interface
 2. **sketch.js sends** the message to `http://localhost:3000/api/chat`
-3. **server.js receives** the request and forwards it to Anthropic's API
-4. **Claude processes** the message and sends back a response
+3. **server.js receives** the request and forwards it to NVIDIA's API
+4. **Llama Vision processes** the message and sends back a response
 5. **server.js returns** the response to sketch.js
-6. **sketch.js displays** Claude's response on the canvas
+6. **sketch.js displays** Llama's response on the canvas
 
 ### Why Use a Server?
 
@@ -146,7 +160,7 @@ You should see the "Server running..." message.
 
 1. Check the browser console (F12) for errors
 2. Check the terminal where the server is running for errors
-3. Verify your API key is valid at [console.anthropic.com](https://console.anthropic.com)
+3. Verify your API key is valid at [build.nvidia.com](https://build.nvidia.com)
 
 ## 🎨 Customization Ideas for Students
 
@@ -166,14 +180,16 @@ You should see the "Server running..." message.
 ### Advanced Projects:
 - Add support for streaming responses
 - Implement message editing
-- Add file upload capability
-- Create different "personas" for Claude
+- Add file upload capability for analyzing your own images
+- Create different vision models for different tasks
 - Build a voice interface
+- Compare responses from different NVIDIA models
 
 ## 📚 Learning Resources
 
 - [p5.js Reference](https://p5js.org/reference/)
-- [Anthropic API Documentation](https://docs.anthropic.com/)
+- [NVIDIA NIM API Documentation](https://docs.api.nvidia.com/)
+- [NVIDIA Build Platform](https://build.nvidia.com/)
 - [JavaScript Async/Await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
 - [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 
@@ -182,7 +198,7 @@ You should see the "Server running..." message.
 - **Never share your API key** publicly
 - **Never commit `config.js`** to git (it's already in `.gitignore`)
 - The `config.example.js` file is safe to share
-- Monitor your API usage at [console.anthropic.com](https://console.anthropic.com)
+- Monitor your API usage at [build.nvidia.com](https://build.nvidia.com)
 
 ## 📝 License
 
