@@ -14,10 +14,10 @@ const API_URL = "http://localhost:3000/api/chat";
 // GLOBAL VARIABLES
 // =============================================================================
 
-let inputField;              // Text box where user types
-let submitButton;            // Button to send messages
+let inputField; // Text box where user types
+let submitButton; // Button to send messages
 let conversationHistory = []; // Array storing all messages back and forth
-let isLoading = false;       // Are we waiting for Llama to respond?
+let isLoading = false; // Are we waiting for Llama to respond?
 
 // =============================================================================
 // SETUP - Runs once when the program starts
@@ -39,7 +39,7 @@ function setup() {
   submitButton.mousePressed(sendMessage); // When clicked, call sendMessage()
 
   // Allow Enter key to send message (instead of clicking button)
-  inputField.elt.addEventListener("keypress", (e) => {
+  inputField.elt.addEventListener("keypress", e => {
     if (e.key === "Enter") {
       sendMessage();
     }
@@ -82,11 +82,9 @@ function drawConversation() {
 
   // Loop through all messages and display them
   for (let msg of conversationHistory) {
-
     if (msg.role === "user") {
       // Draw user messages in blue
       yPos = drawMessage("You:", msg.content, yPos, color(60, 120, 200));
-
     } else if (msg.role === "assistant") {
       // Draw Llama's messages in pink
       yPos = drawMessage("Llama:", msg.content, yPos, color(200, 60, 120));
@@ -162,9 +160,9 @@ async function sendMessage() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",  // Which AI model to use
-        max_tokens: 1024,                      // Maximum length of response
-        messages: conversationHistory          // All previous messages
+        model: "claude-sonnet-4-5-20250929", // Which AI model to use
+        max_tokens: 1024, // Maximum length of response
+        messages: conversationHistory // All previous messages
       })
     });
 
@@ -183,7 +181,6 @@ async function sendMessage() {
         content: data.content[0].text
       });
     }
-
   } catch (error) {
     // If something goes wrong, show error message
     console.error("Error calling Anthropic API:", error);
@@ -203,9 +200,9 @@ async function sendMessage() {
 
 // Split long text into multiple lines so it fits on screen
 function splitText(txt, maxWidth) {
-  let words = txt.split(" ");     // Break text into individual words
-  let lines = [];                 // Store the final lines
-  let currentLine = "";           // Build up the current line
+  let words = txt.split(" "); // Break text into individual words
+  let lines = []; // Store the final lines
+  let currentLine = ""; // Build up the current line
 
   // Try adding each word to the current line
   for (let word of words) {
@@ -213,10 +210,10 @@ function splitText(txt, maxWidth) {
 
     // If adding this word makes the line too long...
     if (textWidth(testLine) > maxWidth && currentLine !== "") {
-      lines.push(currentLine.trim());  // Save current line
-      currentLine = word + " ";        // Start new line with this word
+      lines.push(currentLine.trim()); // Save current line
+      currentLine = word + " "; // Start new line with this word
     } else {
-      currentLine = testLine;          // Add word to current line
+      currentLine = testLine; // Add word to current line
     }
   }
 

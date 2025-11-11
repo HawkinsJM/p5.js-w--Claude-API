@@ -35,9 +35,19 @@ app.post('/api/chat', async (req, res) => {
     // Convert Anthropic-style messages to OpenAI format
     const messages = req.body.messages || [];
 
+    // Add system prompt at the beginning if not already present
+    const systemPrompt = {
+      role: "system",
+      content: "You are a helpful AI assistant. You provide clear, concise, and accurate responses."
+    };
+
+    // Check if first message is already a system message
+    const hasSystemMessage = messages.length > 0 && messages[0].role === "system";
+    const finalMessages = hasSystemMessage ? messages : [systemPrompt, ...messages];
+
     const completion = await openai.chat.completions.create({
       model: "meta/llama-4-scout-17b-16e-instruct",
-      messages: messages,
+      messages: finalMessages,
       temperature: req.body.temperature || 1,
       top_p: req.body.top_p || 1,
       max_tokens: req.body.max_tokens || 512,
