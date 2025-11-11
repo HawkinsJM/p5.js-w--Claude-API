@@ -1,13 +1,13 @@
 /*
- * CHAT WITH CLAUDE - A p5.js + AI Application
- * This sketch creates a chat interface where users can talk with Claude AI
+ * CHAT WITH LLAMA - A p5.js + AI Application
+ * This sketch creates a chat interface where users can talk with Llama AI
  */
 
 // =============================================================================
 // CONFIGURATION
 // =============================================================================
 
-// Where to send our messages (our server acts as a middleman to Claude)
+// Where to send our messages (our server acts as a middleman to Llama)
 const API_URL = "http://localhost:3000/api/chat";
 
 // =============================================================================
@@ -17,7 +17,7 @@ const API_URL = "http://localhost:3000/api/chat";
 let inputField;              // Text box where user types
 let submitButton;            // Button to send messages
 let conversationHistory = []; // Array storing all messages back and forth
-let isLoading = false;       // Are we waiting for Claude to respond?
+let isLoading = false;       // Are we waiting for Llama to respond?
 
 // =============================================================================
 // SETUP - Runs once when the program starts
@@ -72,7 +72,7 @@ function drawTitle() {
   fill(0);
   textSize(20);
   textStyle(BOLD);
-  text("Chat with Claude", 20, 20);
+  text("Chat with Llama", 20, 20);
 }
 
 function drawConversation() {
@@ -88,8 +88,8 @@ function drawConversation() {
       yPos = drawMessage("You:", msg.content, yPos, color(60, 120, 200));
 
     } else if (msg.role === "assistant") {
-      // Draw Claude's messages in pink
-      yPos = drawMessage("Claude:", msg.content, yPos, color(200, 60, 120));
+      // Draw Llama's messages in pink
+      yPos = drawMessage("Llama:", msg.content, yPos, color(200, 60, 120));
     }
   }
 
@@ -97,7 +97,7 @@ function drawConversation() {
   if (isLoading) {
     fill(100);
     textStyle(ITALIC);
-    text("Claude is typing...", 20, yPos);
+    text("Llama is typing...", 20, yPos);
   }
 
   // Warn if conversation is too long to see on screen
@@ -155,7 +155,7 @@ async function sendMessage() {
   isLoading = true;
 
   try {
-    // Send request to our server (which talks to Claude)
+    // Send request to our server (which talks to Llama)
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -173,10 +173,10 @@ async function sendMessage() {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
-    // Get Claude's response
+    // Get Llama's response
     const data = await response.json();
 
-    // Add Claude's response to conversation history
+    // Add Llama's response to conversation history
     if (data.content && data.content[0]) {
       conversationHistory.push({
         role: "assistant",
