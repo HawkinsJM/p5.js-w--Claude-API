@@ -18,6 +18,8 @@ let inputField;              // Text box where user types
 let submitButton;            // Button to send messages
 let conversationHistory = []; // Array storing all messages back and forth
 let isLoading = false;       // Are we waiting for Llama to respond?
+let frogImageData = null;    // Base64 encoded frog image
+let initialMessageSent = false; // Track if we've sent the initial frog analysis
 
 // =============================================================================
 // SETUP - Runs once when the program starts
@@ -48,6 +50,9 @@ function setup() {
   // Set default text settings
   textAlign(LEFT, TOP);
   textSize(14);
+
+  // Load the frog image on startup
+  loadFrogImage();
 }
 
 // =============================================================================
@@ -132,7 +137,87 @@ function drawMessage(sender, content, yPosition, senderColor) {
 }
 
 // =============================================================================
-// SENDING MESSAGES TO CLAUDE
+// LOADING FROG IMAGE
+// =============================================================================
+
+async function loadFrogImage() {
+  try {
+    const response = await fetch('http://localhost:3000/api/frog-image');
+    const data = await response.json();
+    frogImageData = data.image;
+
+    // Automatically send initial message with frog image
+    setTimeout(() => {
+      sendInitialFrogAnalysis();
+    }, 500);
+  } catch (error) {
+    console.error('Error loading frog image:', error);
+  }
+}
+
+async function sendInitialFrogAnalysis() {
+  if (initialMessageSent || !frogImageData) return;
+
+  initialMessageSent = true;
+  isLoading = true;
+
+  // Add system message to show we're analyzing
+  conversationHistory.push({
+    role: "user",
+    content: "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
+  });
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        max_tokens: 512,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${frogImageData}`
+              }
+            }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.content && data.content[0]) {
+      conversationHistory.push({
+        role: "assistant",
+        content: data.content[0].text
+      });
+    }
+  } catch (error) {
+    console.error("Error analyzing frog image:", error);
+    conversationHistory.push({
+      role: "assistant",
+      content: "Error: " + error.message
+    });
+  }
+
+  isLoading = false;
+}
+
+// =============================================================================
+// SENDING MESSAGES TO LLAMA
 // =============================================================================
 
 async function sendMessage() {

@@ -28,15 +28,31 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Proxy endpoint for NVIDIA Llama API
+// Endpoint to get the frog image as base64
+app.get('/api/frog-image', (req, res) => {
+  try {
+    const imagePath = './Picture1.b7f92cc.width-1600.ccbd223.jpg';
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+    res.json({
+      image: base64Image,
+      mimeType: 'image/jpeg'
+    });
+  } catch (error) {
+    console.error('Error loading frog image:', error);
+    res.status(500).json({ error: 'Failed to load image' });
+  }
+});
+
+// Proxy endpoint for NVIDIA Llama Vision API (Maverick model)
 app.post('/api/chat', async (req, res) => {
   console.log('Received request to /api/chat');
   try {
-    // Convert Anthropic-style messages to OpenAI format
+    // Convert Anthropic-style messages to OpenAI format with vision support
     const messages = req.body.messages || [];
 
     const completion = await openai.chat.completions.create({
-      model: "meta/llama-4-scout-17b-16e-instruct",
+      model: "meta/llama-4-maverick-17b-128e-instruct",
       messages: messages,
       temperature: req.body.temperature || 1,
       top_p: req.body.top_p || 1,
