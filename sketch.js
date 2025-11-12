@@ -14,12 +14,13 @@ const API_URL = "http://localhost:3000/api/chat";
 // GLOBAL VARIABLES
 // =============================================================================
 
-let inputField;              // Text box where user types
-let submitButton;            // Button to send messages
+let inputField; // Text box where user types
+let submitButton; // Button to send messages
 let conversationHistory = []; // Array storing all messages back and forth
-let isLoading = false;       // Are we waiting for Llama to respond?
-let frogImageData = null;    // Base64 encoded frog image
+let isLoading = false; // Are we waiting for Llama to respond?
+let frogImageData = null; // Base64 encoded frog image
 let initialMessageSent = false; // Track if we've sent the initial frog analysis
+let particles = []; // Array of word particles floating on screen
 
 // =============================================================================
 // SETUP - Runs once when the program starts
@@ -41,7 +42,7 @@ function setup() {
   submitButton.mousePressed(sendMessage); // When clicked, call sendMessage()
 
   // Allow Enter key to send message (instead of clicking button)
-  inputField.elt.addEventListener("keypress", (e) => {
+  inputField.elt.addEventListener("keypress", e => {
     if (e.key === "Enter") {
       sendMessage();
     }
@@ -73,6 +74,64 @@ function draw() {
 // HELPER FUNCTIONS FOR DRAWING
 // =============================================================================
 
+// Particle class for word particles
+class Particle {
+  constructor(word, x, y, isUser) {
+    this.word = word;
+    this.x = x;
+    this.y = y;
+    this.vx = random(-2, 2); // Horizontal velocity
+    this.vy = random(-3, -1); // Vertical velocity (moves up)
+    this.alpha = 255; // Opacity
+    this.lifetime = 300; // Frames before particle fades
+    this.age = 0;
+    this.isUser = isUser; // Color based on user or assistant
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.age++;
+
+    // Fade out over time
+    this.alpha = 255 * (1 - this.age / this.lifetime);
+
+    // Gravity effect
+    this.vy += 0.05;
+  }
+
+  display() {
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(12);
+
+    if (this.isUser) {
+      fill(60, 120, 200, this.alpha); // Blue for user
+    } else {
+      fill(200, 60, 120, this.alpha); // Pink for assistant
+    }
+
+    text(this.word, this.x, this.y);
+    pop();
+  }
+
+  isDead() {
+    return this.age >= this.lifetime;
+  }
+}
+
+function updateAndDrawParticles() {
+  // Update all particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    particles[i].display();
+
+    if (particles[i].isDead()) {
+      particles.splice(i, 1); // Remove dead particles
+    }
+  }
+}
+
 function drawTitle() {
   fill(0);
   textSize(20);
@@ -87,11 +146,9 @@ function drawConversation() {
 
   // Loop through all messages and display them
   for (let msg of conversationHistory) {
-
     if (msg.role === "user") {
       // Draw user messages in blue
       yPos = drawMessage("You:", msg.content, yPos, color(60, 120, 200));
-
     } else if (msg.role === "assistant") {
       // Draw Llama's messages in pink
       yPos = drawMessage("Llama:", msg.content, yPos, color(200, 60, 120));
@@ -127,9 +184,20 @@ function drawMessage(sender, content, yPosition, senderColor) {
 
   // Split long text into multiple lines
   let lines = splitText(content, width - 40);
+  let isUser = sender === "You:";
+
   for (let line of lines) {
     yPosition += 20; // Move down for each line
     text(line, 20, yPosition);
+
+    // Create particles for each word in this line
+    let words = line.split(" ");
+    for (let word of words) {
+      if (word.trim() !== "") {
+        let p = new Particle(word, random(20, width - 40), yPosition, isUser);
+        particles.push(p);
+      }
+    }
   }
 
   yPosition += 30; // Extra space before next message
@@ -142,7 +210,7 @@ function drawMessage(sender, content, yPosition, senderColor) {
 
 async function loadFrogImage() {
   try {
-    const response = await fetch('http://localhost:3000/api/frog-image');
+    const response = await fetch("http://localhost:3000/api/frog-image");
     const data = await response.json();
     frogImageData = data.image;
 
@@ -151,7 +219,7 @@ async function loadFrogImage() {
       sendInitialFrogAnalysis();
     }, 500);
   } catch (error) {
-    console.error('Error loading frog image:', error);
+    console.error("Error loading frog image:", error);
   }
 }
 
@@ -164,7 +232,8 @@ async function sendInitialFrogAnalysis() {
   // Add system message to show we're analyzing
   conversationHistory.push({
     role: "user",
-    content: "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
+    content:
+      "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
   });
 
   try {
@@ -175,21 +244,23 @@ async function sendInitialFrogAnalysis() {
       },
       body: JSON.stringify({
         max_tokens: 512,
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${frogImageData}`
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Please analyze this frog image and provide detailed feedback about the species, colors, and photography quality."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${frogImageData}`
+                }
               }
-            }
-          ]
-        }]
+            ]
+          }
+        ]
       })
     });
 
@@ -247,9 +318,9 @@ async function sendMessage() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",  // Which AI model to use
-        max_tokens: 1024,                      // Maximum length of response
-        messages: conversationHistory          // All previous messages
+        model: "claude-sonnet-4-5-20250929", // Which AI model to use
+        max_tokens: 1024, // Maximum length of response
+        messages: conversationHistory // All previous messages
       })
     });
 
@@ -268,7 +339,6 @@ async function sendMessage() {
         content: data.content[0].text
       });
     }
-
   } catch (error) {
     // If something goes wrong, show error message
     console.error("Error calling Anthropic API:", error);
@@ -288,9 +358,9 @@ async function sendMessage() {
 
 // Split long text into multiple lines so it fits on screen
 function splitText(txt, maxWidth) {
-  let words = txt.split(" ");     // Break text into individual words
-  let lines = [];                 // Store the final lines
-  let currentLine = "";           // Build up the current line
+  let words = txt.split(" "); // Break text into individual words
+  let lines = []; // Store the final lines
+  let currentLine = ""; // Build up the current line
 
   // Try adding each word to the current line
   for (let word of words) {
@@ -298,10 +368,10 @@ function splitText(txt, maxWidth) {
 
     // If adding this word makes the line too long...
     if (textWidth(testLine) > maxWidth && currentLine !== "") {
-      lines.push(currentLine.trim());  // Save current line
-      currentLine = word + " ";        // Start new line with this word
+      lines.push(currentLine.trim()); // Save current line
+      currentLine = word + " "; // Start new line with this word
     } else {
-      currentLine = testLine;          // Add word to current line
+      currentLine = testLine; // Add word to current line
     }
   }
 
